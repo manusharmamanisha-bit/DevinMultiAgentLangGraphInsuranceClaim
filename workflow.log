@@ -1,0 +1,58 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------< com.insurance:multi-agent-insurance-claim >--------------
+[INFO] Building Multi-Agent Insurance Claim System 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.5:run (default-cli) > test-compile @ multi-agent-insurance-claim >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ multi-agent-insurance-claim ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ multi-agent-insurance-claim ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ multi-agent-insurance-claim ---
+[INFO] skip non existing resourceDirectory C:\Users\Administrator\AssignmentMultiAgentInsuranceClaim\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ multi-agent-insurance-claim ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.5:run (default-cli) < test-compile @ multi-agent-insurance-claim <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.5:run (default-cli) @ multi-agent-insurance-claim ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-07-15T11:25:45.427Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] .i.c.MultiAgentInsuranceClaimApplication : Starting MultiAgentInsuranceClaimApplication using Java 21.0.8 with PID 1616 (C:\Users\Administrator\AssignmentMultiAgentInsuranceClaim\target\classes started by Administrator in C:\Users\Administrator\AssignmentMultiAgentInsuranceClaim)
+2026-07-15T11:25:45.432Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] .i.c.MultiAgentInsuranceClaimApplication : No active profile set, falling back to 1 default profile: "default"
+2026-07-15T11:25:47.495Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-07-15T11:25:47.533Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-15T11:25:47.533Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-07-15T11:25:47.611Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-07-15T11:25:47.613Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2104 ms
+2026-07-15T11:25:47.873Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-07-15T11:25:48.323Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path ''
+2026-07-15T11:25:48.336Z  INFO 1616 --- [multi-agent-insurance-claim] [           main] .i.c.MultiAgentInsuranceClaimApplication : Started MultiAgentInsuranceClaimApplication in 3.511 seconds (process running for 4.106)
+2026-07-15T11:25:52.738Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-15T11:25:52.739Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-15T11:25:52.740Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-07-15T11:26:11.257Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=__START__, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=SUBMITTED
+2026-07-15T11:26:11.265Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=intake, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=INTAKE
+2026-07-15T11:26:11.268Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=validation, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=VALIDATING
+2026-07-15T11:26:11.271Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=fraud, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=FRAUD_CHECKING
+2026-07-15T11:26:11.274Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=assessment, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=ASSESSING
+2026-07-15T11:26:11.276Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=approval, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=APPROVED
+2026-07-15T11:26:11.281Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=payment, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=PAYING
+2026-07-15T11:26:11.284Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=notification, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=COMPLETED
+2026-07-15T11:26:11.285Z  INFO 1616 --- [multi-agent-insurance-claim] [nio-8081-exec-4] c.insurance.claim.graph.ClaimWorkflow    : Workflow step: node=__END__, claimId=2e35b08b-b5e8-42a3-8e68-c7f65146534c, status=COMPLETED
