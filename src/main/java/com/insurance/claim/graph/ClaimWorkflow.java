@@ -3,13 +3,15 @@ package com.insurance.claim.graph;
 import com.insurance.claim.agent.*;
 import com.insurance.claim.model.Claim;
 import org.bsc.langgraph4j.CompiledGraph;
+import org.bsc.langgraph4j.NodeOutput;
 import org.bsc.langgraph4j.RunnableConfig;
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.action.EdgeAction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static org.bsc.langgraph4j.StateGraph.END;
 import static org.bsc.langgraph4j.StateGraph.START;
@@ -18,6 +20,8 @@ import static org.bsc.langgraph4j.action.AsyncNodeAction.node_async;
 
 @Component
 public class ClaimWorkflow {
+
+    private static final Logger log = LoggerFactory.getLogger(ClaimWorkflow.class);
 
     private final CompiledGraph<ClaimGraphState> fullWorkflow;
     private final CompiledGraph<ClaimGraphState> postReviewWorkflow;
@@ -133,11 +137,20 @@ public class ClaimWorkflow {
 
     private Claim run(CompiledGraph<ClaimGraphState> graph, Claim claim) {
         RunnableConfig config = RunnableConfig.builder().build();
-        Optional<ClaimGraphState> result = graph.invoke(Map.of(ClaimGraphState.CLAIM_KEY, claim), config);
-        if (result.isEmpty()) {
+        ClaimGraphState finalState = null;
+
+        for (NodeOutput<ClaimGraphState> output : graph.stream(Map.of(ClaimGraphState.CLAIM_KEY, claim), config)) {
+            finalState = output.state();
+            log.info("Workflow step: node={}, claimId={}, status={}",
+                    output.node(),
+                    finalState.claim() != null ? finalState.claim().getId() : "null",
+                    finalState.claim() != null ? finalState.claim().getStatus() : "null");
+        }
+
+        if (finalState == null) {
             throw new IllegalStateException("Graph execution returned empty state");
         }
-        Claim processed = result.get().claim();
+        Claim processed = finalState.claim();
         if (processed == null) {
             throw new IllegalStateException("Processed claim is null");
         }
