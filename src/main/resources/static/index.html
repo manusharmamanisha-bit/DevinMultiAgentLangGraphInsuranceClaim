@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Insurance Claim System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+        }
+        h1, h2 { color: #2c3e50; }
+        section {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            background: #fafafa;
+        }
+        label {
+            display: block;
+            margin-top: 0.75rem;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.25rem;
+            box-sizing: border-box;
+        }
+        button {
+            margin-top: 1rem;
+            padding: 0.6rem 1.2rem;
+            background: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #1c5985; }
+        .output {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff;
+            border-left: 4px solid #2980b9;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .error {
+            border-left-color: #c0392b;
+            color: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        th { background: #eee; }
+    </style>
+</head>
+<body>
+    <h1>Multi-Agent Insurance Claim System</h1>
+    <p>Submit a claim and watch the LangGraph4j multi-agent workflow process it.</p>
+
+    <section>
+        <h2>Submit a Claim</h2>
+        <form id="claimForm">
+            <label for="policyNumber">Policy Number</label>
+            <input type="text" id="policyNumber" name="policyNumber" value="POL-12345" required>
+
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" required>Rear-end collision repair</textarea>
+
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" name="amount" value="2500" step="0.01" required>
+
+            <button type="submit">Submit Claim</button>
+        </form>
+        <div id="submitOutput" class="output" style="display:none"></div>
+    </section>
+
+    <section>
+        <h2>All Claims</h2>
+        <button id="loadClaims">Refresh Claims</button>
+        <div id="claimsContainer"></div>
+    </section>
+
+    <section>
+        <h2>Manual Review Queue</h2>
+        <p>Claims flagged for manual review (amount &gt; 1 lakh or high fraud risk).</p>
+        <button id="loadReviewQueue">Refresh Queue</button>
+        <div id="reviewQueueContainer"></div>
+    </section>
+
+    <section>
+        <h2>Manual Review (by ID)</h2>
+        <label for="reviewId">Claim ID</label>
+        <input type="text" id="reviewId" placeholder="Paste claim ID here">
+
+        <label for="reviewDecision">Decision</label>
+        <select id="reviewDecision">
+            <option value="true">Approve and continue</option>
+            <option value="false">Reject</option>
+        </select>
+
+        <label for="reviewNotes">Notes</label>
+        <input type="text" id="reviewNotes" placeholder="Manual review cleared">
+
+        <button id="submitReview">Submit Review</button>
+        <div id="reviewOutput" class="output" style="display:none"></div>
+    </section>
+
+    <script>
+        const API_BASE = '/api/claims';
+
+        function showOutput(elementId, text, isError) {
+            const el = document.getElementById(elementId);
+            el.style.display = 'block';
+            el.textContent = typeof text === 'object' ? JSON.stringify(text, null, 2) : text;
+            el.className = 'output' + (isError ? ' error' : '');
+        }
+
+        function showSubmitSummary(claim) {
+            const el = document.getElementById('submitOutput');
+            el.style.display = 'block';
+            el.className = 'output';
+            let message = `Claim submitted successfully.\nID: ${claim.id}\nStatus: ${claim.status}`;
+            if (claim.status === 'MANUAL_REVIEW_REQUIRED') {
+                message += '\n\nThis claim has been flagged for manual review. Use the Manual Review Queue below to approve or reject it.';
+            } else if (claim.status === 'COMPLETED') {
+                message += `\nPayment Reference: ${claim.paymentReference || '-'}`;
+                message += `\nAssessed Amount: ${claim.assessedAmount}`;
+            } else if (claim.status === 'REJECTED' || claim.status === 'INVALID') {
+                message += '\n\nThe claim could not be processed automatically.';
+            }
+            el.textContent = message;
+        }
+
+        document.getElementById('claimForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = {
+                policyNumber: document.getElementById('policyNumber').value,
+                description: document.getElementById('description').value,
+                amount: parseFloat(document.getElementById('amount').value)
+            };
+
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    showOutput('submitOutput', data, true);
+                    return;
+                }
+                showSubmitSummary(data);
+                loadClaims();
+                loadReviewQueue();
+            } catch (err) {
+                showOutput('submitOutput', 'Error: ' + err.message, true);
+            }
+        });
+
+        async function loadClaims() {
+            try {
+                const response = await fetch(API_BASE);
+                if (!response.ok) throw new Error('Failed to load claims');
+                const claims = await response.json();
+                renderClaims(claims);
+            } catch (err) {
+                document.getElementById('claimsContainer').innerHTML = '<p class="error">Error: ' + err.message + '</p>';
+            }
+        }
+
+        function renderClaims(claims) {
+            const container = document.getElementById('claimsContainer');
+            if (!Array.isArray(claims) || claims.length === 0) {
+                container.innerHTML = '<p>No claims yet.</p>';
+                return;
+            }
+
+            let html = '<table><tr><th>ID</th><th>Policy</th><th>Amount</th><th>Status</th><th>Approved</th><th>Payment Ref</th></tr>';
+            claims.forEach(c => {
+                html += `<tr>
+                    <td>${c.id}</td>
+                    <td>${c.policyNumber}</td>
+                    <td>${c.amount}</td>
+                    <td>${c.status}</td>
+                    <td>${c.approved}</td>
+                    <td>${c.paymentReference || '-'}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        async function loadReviewQueue() {
+            try {
+                const response = await fetch(API_BASE);
+                if (!response.ok) throw new Error('Failed to load review queue');
+                const claims = await response.json();
+                const pending = claims.filter(c => c.status === 'MANUAL_REVIEW_REQUIRED');
+                renderManualReviewQueue(pending);
+            } catch (err) {
+                document.getElementById('reviewQueueContainer').innerHTML = '<p class="error">Error: ' + err.message + '</p>';
+            }
+        }
+
+        function renderManualReviewQueue(claims) {
+            const container = document.getElementById('reviewQueueContainer');
+            if (!Array.isArray(claims) || claims.length === 0) {
+                container.innerHTML = '<p>No claims pending manual review.</p>';
+                return;
+            }
+
+            let html = '<table><tr><th>ID</th><th>Policy</th><th>Amount</th><th>Status</th><th>Notes</th><th>Actions</th></tr>';
+            claims.forEach(c => {
+                html += `<tr>
+                    <td>${c.id}</td>
+                    <td>${c.policyNumber}</td>
+                    <td>${c.amount}</td>
+                    <td>${c.status}</td>
+                    <td><input type="text" id="notes-${c.id}" placeholder="Review notes" style="width:100%"></td>
+                    <td>
+                        <button onclick="window.submitReviewForId('${c.id}', true)">Approve</button>
+                        <button onclick="window.submitReviewForId('${c.id}', false)" style="background:#c0392b">Reject</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        window.submitReviewForId = async function(id, approved) {
+            const notesInput = document.getElementById('notes-' + id);
+            const notes = notesInput ? notesInput.value : '';
+            const payload = { approved: approved, notes: notes };
+
+            try {
+                const response = await fetch(`${API_BASE}/${id}/review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    showOutput('reviewOutput', data, true);
+                    return;
+                }
+                showOutput('reviewOutput', data);
+                loadClaims();
+                loadReviewQueue();
+            } catch (err) {
+                showOutput('reviewOutput', 'Error: ' + err.message, true);
+            }
+        };
+
+        document.getElementById('loadClaims').addEventListener('click', loadClaims);
+        document.getElementById('loadReviewQueue').addEventListener('click', loadReviewQueue);
+
+        document.getElementById('submitReview').addEventListener('click', async function() {
+            const id = document.getElementById('reviewId').value.trim();
+            if (!id) {
+                showOutput('reviewOutput', 'Please enter a claim ID', true);
+                return;
+            }
+
+            const payload = {
+                approved: document.getElementById('reviewDecision').value === 'true',
+                notes: document.getElementById('reviewNotes').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/${id}/review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    showOutput('reviewOutput', data, true);
+                    return;
+                }
+                showOutput('reviewOutput', data);
+                loadClaims();
+                loadReviewQueue();
+            } catch (err) {
+                showOutput('reviewOutput', 'Error: ' + err.message, true);
+            }
+        });
+
+        loadClaims();
+        loadReviewQueue();
+    </script>
+</body>
+</html>
